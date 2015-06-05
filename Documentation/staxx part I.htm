@@ -1,0 +1,1468 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Introduction</title>
+</head>
+
+<body>
+
+<p><img border="0" src="screenshot.png" width="800" height="600"></p>
+<!-- INSERT contents -->
+<h2><a name="Introduction0">Introduction</a> </h2>
+<p>Intertexti is an initiative I'm undertaking to implement something similar to 
+Apple's <a href="http://en.wikipedia.org/wiki/HyperCard">HyperCard</a> 
+application.&nbsp; The name is based on the Latin word for &quot;intertwined&quot;, since the 
+notecards in the system can be linked any-which-way to other cards.&nbsp; </p>
+<h3>What You Will Encounter&nbsp;</h3>
+<p>In this application, I take advantage of the following third party 
+components:</p>
+<ul>
+	<li><a href="http://dockpanelsuite.com/">WeiFen Luo's DockPanelSuite</a>&nbsp;</li>
+	<li><a href="http://webkitdotnet.sourceforge.net/">WebKit.NET</a>&nbsp;</li>
+	<li>
+	<a href="http://code.msdn.microsoft.com/windowsdesktop/WinForms-HTML-Editor-01dbce1a/view/SourceCode">
+	A WinForm HTML editor</a></li>
+</ul>
+as well as:<br>
+&nbsp;<ul>
+	<li>
+	<a href="http://www.codeproject.com/Articles/488643/LinQ-Extended-Joins">
+	Linq Extended Joins</a>&nbsp;</li>
+	<li>Model-View-Controller (MVC) architecture</li>
+	<li>Declarative programming practices</li>
+</ul>
+<h3>What Am I Trying To Accomplish ?&nbsp;</h3>
+<p>The problem I'm trying to solve is this - in most everything that I do either 
+for work or personal projects, I find a lot of useful information spread across 
+web pages.&nbsp; I need to organize those pages in better ways than just bookmarking 
+-- I want to be able to add tags, create an index from those tags, see what 
+pages I want to associate with other pages (which often enough the page itself 
+doesn't link to directly), and so forth.</p>
+<p>Furthermore, I want to be able to associate my own notes, todo lists, 
+commentary, etc., and reference back to relevant pages.&nbsp; Again, this kind of 
+note taking and cross-referencing is not something a browser supports.&nbsp; 
+Furthermore, and especially with regards to my own notes, I want to be able to 
+organize them relationally, which can often be expressed visually as a table of 
+contents -- something that shows the structure and organization of my own notes 
+as well as providing links to sources, further reading, and so forth.</p>
+<p>&nbsp;A Word document is simply to linear for me -- it's one dimensional, like the 
+vertical scrollbar.&nbsp; The second dimension, the cross-referencing of documents, 
+is what Intertexti achieves, at least in prototype form. </p>
+<h3>My Design Goals</h3>
+<p>As usual, the goal is to design something that is flexible, almost 
+immediately useable, and is implemented with minimal amount of code.&nbsp; You will 
+note my heavy reliance on my standard operating practice of using XML for 
+everything declarative.&nbsp; You will also note that, as a result of the MVC 
+architecture, methods are very small -- some only a line or two.&nbsp; Lastly, the 
+underlying application organization should be support the idea of extensibility 
+-- for example, if you don't want to use WebKit is the browser engine, you 
+should be able to replace it with something else with a minimal amount of fuss.</p>
+<h3>About This Article</h3>
+<p>I tend to write articles as I'm doing the coding, so what you will encounter 
+here is a log, if you will, of the development process.&nbsp; The final source code 
+has slight differences from the code presented here--for example, the final 
+version of the NotecardRecord class uses a factory pattern rather than a 
+publicly exposed constructor.&nbsp; But the idea is that the reader will get a sense 
+of how the application was developed and the problems I encountered (like 
+handling right-click mouse events on the WebKit browser).</p>
+<h2>Initial Features</h2>
+<p>My initial features are not too ambitious:</p>
+<ul>
+	<li>Dockable windows using Weifen Luo's Dock Panel Suite.</li>
+	<li>A side panel for the table of contents</li>
+	<li>A side panel for the index</li>
+	<li>A side panel for links to other notecards--&quot;references&quot;.&nbsp; One of 
+	the usability issues I keep encountering is that links are usually embedded 
+	- portions of text, areas on an image, etc.&nbsp; For text, this means 
+	having to scan the text for links.&nbsp; What I want instead is for all the 
+	possible links to be displayed in a separate section with annotation 
+	describing the link.&nbsp; </li>
+	<li>A side panel for notecards that link to this notecard--&quot;referenced by&quot;.&nbsp; 
+	Often enough, I want to see what the broader theme is.</li>
+	<li>An HTML-based notecard, allowing any HTML content and possible future 
+	scripting.</li>
+</ul>
+<p>As might be surmised by the description above of references, I view 
+references as being unidirectional, essentially drilling down (or at least 
+horizontally) whereas the links for &quot;referenced by&quot; are popping up the tree.</p>
+<h2>Visualizing the Navigation Concept</h2>
+<p>There are four forms of navigation, but these should be intuitive to the 
+user:</p>
+<ol>
+	<li>Table of Contents: Each notecard has a title and the table of contents 
+	is generated from title information, and sub-sections are determined by 
+	references on the notecard designated as &quot;subsection&quot; or something similar.&nbsp; 
+	If a reference points to a notecard already in the table of contents, it is 
+	ignored.</li>
+	<li>Index: This lists all the notecards where a specific text tag is used.</li>
+	<li>Forward references: Not every reference needs to go into the table of 
+	contents, but a link to another notecard might still be useful.&nbsp; These 
+	(in addition to the table of contents references) are displayed in the 
+	references navigation.</li>
+	<li>Reverse references: This displays the list of notecards referencing the 
+	current notecard.</li>
+</ol>
+<p>For example, given 5 notecards:</p>
+<p>
+<img border="0" src="example1a.png" width="504" height="278"></p>
+<p>The four navigable components are:</p>
+<p>
+<img border="0" src="example1b.png" width="348" height="252"></p>
+<h2>Initial User Interface</h2>
+<h3>UI Scaffold</h3>
+<p>The above pieces can be quickly put together in a scaffold--no content, just 
+the layout of the views:</p>
+<p>
+<img border="0" src="scaffold.png" width="489" height="400"></p>
+<h3>The Imperative Code</h3>
+<p>Getting this scaffolding up and running takes about 200 lines of code, 
+leveraging Weifen Luo's <a href="http://dockpanelsuite.sourceforge.net/">
+DockPanelSuite</a> and my recent article on
+<a href="http://www.codeproject.com/Articles/525541/Decoupling-Content-From-Container-in-Weifen-Luos">
+Decoupling Content from Container</a>,&nbsp; A basic MVC model is used.</p>
+<h4>Program.cs</h4>
+<p>Here we simply instantiate the application's main form:</p>
+<pre>static class Program
+{
+  [STAThread]
+  public static void Main()
+  {
+    Application.EnableVisualStyles();
+    Application.SetCompatibleTextRenderingDefault(false);
+    Form form = Instantiate&lt;Form&gt;(&quot;mainform.xml&quot;, null);
+    Application.Run(form);
+  }
+
+  public static T Instantiate&lt;T&gt;(string filename, Action&lt;MycroParser&gt; AddInstances)
+  {
+    MycroParser mp = new MycroParser();
+
+    if (AddInstances != null)
+    {
+      AddInstances(mp);
+    }
+
+    XmlDocument doc = new XmlDocument();
+    doc.Load(filename);
+    mp.Load(doc, &quot;Form&quot;, null);
+    T obj = (T)mp.Process();
+
+    return obj;
+  }
+}</pre>
+<h4>ApplicationFormView.cs</h4>
+<p>The application's view is simply a placeholder for the DockPanel instance, as 
+this is referenced by the controller to respond to menu events:</p>
+<pre>public class ApplicationFormView : Form
+{
+  public DockPanel DockPanel { get; protected set; }
+
+  public ApplicationFormView()
+  {
+  }
+}</pre>
+<h4>ApplicationFormController.cs</h4>
+<p>The controller handles all of the application's main form events.&nbsp; Most 
+of this is boilerplate for working with DockPanelSuite.&nbsp; The only 
+noteworthy thing here is to observe that the controller is derived from the 
+abstract class ViewController, which requires defining the concrete view type to 
+which the controller is associated.&nbsp; This makes it easier in the controller 
+to work with the specific view properties -- we can avoid all the casting that 
+would otherwise be required.</p>
+<pre>public class ApplicationFormController : ViewController&lt;ApplicationFormView&gt;
+{
+  public ApplicationFormController()
+  {
+  }
+
+  protected void Exit(object sender, EventArgs args)
+  {
+    View.Close();
+  }
+
+  protected void Closing(object sender, CancelEventArgs args)
+  {
+    SaveLayout();
+  }
+
+  protected void RestoreLayout(object sender, EventArgs args)
+  {
+    CloseAllDockContent();
+    LoadTheLayout(&quot;defaultLayout.xml&quot;);
+  }
+
+  protected void LoadLayout(object sender, EventArgs args)
+  {
+    if (File.Exists(&quot;layout.xml&quot;))
+    {
+      LoadTheLayout(&quot;layout.xml&quot;);
+    }
+    else
+    {
+      RestoreLayout(sender, args);
+    }
+  }
+
+  protected void LoadTheLayout(string layoutFilename)
+  {
+    View.DockPanel.LoadFromXml(layoutFilename, ((string persistString)=&gt;
+    {
+      string typeName = persistString.LeftOf(',').Trim();
+      string contentMetadata = persistString.RightOf(',').Trim();
+      IDockContent container = InstantiateContainer(typeName, contentMetadata);
+      InstantiateContent(container, contentMetadata);
+
+      return container;
+    }));
+  }
+
+  protected void SaveLayout()
+  {
+    View.DockPanel.SaveAsXml(&quot;layout.xml&quot;);
+  }
+
+  protected IDockContent InstantiateContainer(string typeName, string metadata)
+  {
+    IDockContent container = null;
+
+    if (typeName == typeof(GenericPane).ToString())
+    {
+      container = new GenericPane(metadata);
+    }
+    else if (typeName == typeof(GenericDocument).ToString())
+    {
+      container = new GenericDocument(metadata);
+    }
+
+  return container;
+  }
+
+  protected void InstantiateContent(object container, string filename)
+  {
+    Program.Instantiate&lt;object&gt;(filename, ((MycroParser mp) =&gt; { mp.AddInstance(&quot;Container&quot;, container); }));
+  }
+
+  protected void NewDocument(string filename)
+  {
+    GenericDocument doc = new GenericDocument(filename);
+    InstantiateContent(doc, filename);
+    doc.Show(View.DockPanel);
+  }
+
+  protected void NewPane(string filename)
+  {
+    GenericPane pane = new GenericPane(filename);
+    InstantiateContent(pane, filename);
+    pane.Show(View.DockPanel);
+  }
+
+  protected void CloseAllDockContent()
+  {
+    if (View.DockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+    {
+      foreach (Form form in View.MdiChildren)
+      {
+        form.Close();
+      }
+    }
+    else
+    {
+      for (int index = View.DockPanel.Contents.Count - 1; index &gt;= 0; index--)
+      {
+        if (View.DockPanel.Contents[index] is IDockContent)
+        {
+          IDockContent content = (IDockContent)View.DockPanel.Contents[index];
+          content.DockHandler.Close();
+        }
+      }
+    }
+  }
+}</pre>
+<h4>ViewController.cs</h4>
+<p>All controllers associated with views are derived from ViewController, which 
+simply provides a typed instance of the underlying view, accessible in the 
+derived controller class:</p>
+<pre>public abstract class ViewController&lt;T&gt; : ISupportInitialize
+{
+  public T View { get; set; }
+
+  public ViewController()
+  {
+  }
+  
+  public virtual void BeginInit()
+  {
+  }
+
+  public virtual void EndInit()
+  {
+  }
+}</pre>
+<p>We will see later where the EndInit() virtual method is used, but for now, 
+just keep in mind that the instantiation engine calls this method when the 
+object has been completely instantiated, which we can take advantage of to do 
+some application-specific initialization in the controller.</p>
+<h3>The Declarative Code</h3>
+<p>The definition of the layout and initial settings is handled by the 
+declarative code, instantiated using 
+<a href="http://www.codeproject.com/Articles/8365/MycroXaml">MycroXaml</a> (with 
+some modifcations).</p>
+<h4>mainform.xml</h4>
+<p>This defines the layout of the application.&nbsp; Note here how various 
+assemblies are being pulled in and the view and controller is being instantiated 
+with final property and event wire-up done last.</p>
+<pre>&lt;MycroXaml Name=&quot;Form&quot;
+  xmlns:wf=&quot;System.Windows.Forms, System.Windows.Forms, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089&quot;
+  xmlns:ixc=&quot;Intertexti.Controllers, Intertexti&quot;
+  xmlns:ixv=&quot;Intertexti.Views, Intertexti&quot;
+  xmlns:wfui=&quot;WeifenLuo.WinFormsUI.Docking, WeifenLuo.WinFormsUI.Docking&quot;
+  xmlns:def=&quot;def&quot;
+  xmlns:ref=&quot;ref&quot;&gt;
+
+  &lt;ixv:ApplicationFormView def:Name=&quot;applicationFormView&quot; Text=&quot;Intertexti&quot; Size=&quot;800, 600&quot; IsMdiContainer=&quot;true&quot;&gt;
+  &lt;ixc:ApplicationFormController def:Name=&quot;controller&quot; View=&quot;{applicationFormView}&quot;/&gt;
+  &lt;ixv:Controls&gt;
+    &lt;wfui:DockPanel def:Name=&quot;dockPanel&quot; Dock=&quot;Fill&quot;/&gt;
+      &lt;wf:MenuStrip&gt;
+        &lt;wf:Items&gt;
+          &lt;wf:ToolStripMenuItem Text=&quot;&amp;amp;File&quot;&gt;
+            &lt;wf:DropDownItems&gt;
+              &lt;wf:ToolStripMenuItem Text=&quot;E&amp;amp;xit&quot; Click=&quot;{controller.Exit}&quot;/&gt;
+            &lt;/wf:DropDownItems&gt;
+          &lt;/wf:ToolStripMenuItem&gt;
+          &lt;wf:ToolStripMenuItem Text=&quot;&amp;amp;Window&quot;&gt;
+            &lt;wf:DropDownItems&gt;
+              &lt;wf:ToolStripMenuItem Text=&quot;Restore &amp;amp;Layout&quot; Click=&quot;{controller.RestoreLayout}&quot;/&gt;
+            &lt;/wf:DropDownItems&gt;
+          &lt;/wf:ToolStripMenuItem&gt;
+        &lt;/wf:Items&gt;
+      &lt;/wf:MenuStrip&gt;
+    &lt;/ixv:Controls&gt;
+  &lt;!-- Forward references --&gt;
+  &lt;!-- Form events requiring the controller must be wired after the controller and form have been instantiated. --&gt;
+  &lt;ixv:ApplicationFormView ref:Name=&quot;applicationFormView&quot; DockPanel=&quot;{dockPanel}&quot; Load=&quot;{controller.LoadLayout}&quot; Closing=&quot;{controller.Closing}&quot;/&gt;
+  &lt;/ixv:ApplicationFormView&gt;
+&lt;/MycroXaml&gt;</pre>
+<h4>The Four Panes</h4>
+<p>There are four initial panes defined in:</p>
+<ul>
+	<li>indexPane.xml</li>
+	<li>linksToPane.xml</li>
+	<li>referencedByPane.xml</li>
+	<li>tableOfContentsPane.xml</li>
+</ul>
+<p>and they all are very similar, so I'll show the markup for only one of them, 
+indexPane.xml:</p>
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;MycroXaml Name=&quot;Form&quot;
+  xmlns:wf=&quot;System.Windows.Forms, System.Windows.Forms, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089&quot;
+  xmlns:ix=&quot;Intertexti, Intertexti&quot;
+  xmlns:ref=&quot;ref&quot;&gt;
+  &lt;ix:GenericPane ref:Name=&quot;Container&quot;
+    TabText=&quot;Index&quot;
+    ClientSize=&quot;400, 190&quot;
+    BackColor=&quot;White&quot;
+    ShowHint=&quot;DockLeft&quot;&gt;
+    &lt;ix:Controls&gt;
+      &lt;wf:TreeView Dock=&quot;Fill&quot;&gt;
+        &lt;wf:Nodes&gt;
+          &lt;wf:TreeNode Text=&quot;Index&quot;&gt;
+          &lt;/wf:TreeNode&gt;
+        &lt;/wf:Nodes&gt;
+      &lt;/wf:TreeView&gt;
+    &lt;/ix:Controls&gt;
+  &lt;/ix:GenericPane&gt;
+&lt;/MycroXaml&gt;</pre>
+<p>The only thing at the moment that differs between the panes is the text and 
+the ShowHint property value assignment.</p>
+<h2>Notecards as a Browser Control</h2>
+<p>
+<img border="0" src="notecards.png" width="843" height="448"></p>
+<p>It seemed most reasonable to leverage web browser technology as a means for 
+rendering notecards.&nbsp; This also has the future possibility of embedding 
+scripts or other control logic to create more sophisticated and dynamic 
+notecards.&nbsp; Rather than use the browser that is embedded in .NET, I decided 
+to use WebKit, specifically the
+<a href="http://webkitdotnet.sourceforge.net/index.php">WebKit.NET</a> 
+implementation.&nbsp; You should be aware however that this implementation does 
+not look like it's actively supported (the last update was August 2010) and is a 
+wrapper for <a href="http://www.webkit.org/">WebKit</a>,&nbsp; Readers should 
+consider looking at <a href="http://code.google.com/p/open-webkit-sharp/">open-webkit-sharp</a> 
+instead.&nbsp; For the moment, the stalled WebKit.NET project is sufficient for 
+this article for two reasons: I'm using VS2008 and open-webkit-sharp's binaries 
+are built with VS2010/12, and I also can't get the a simple browser application 
+to work and I don't want to spend the time fussing with it right now.</p>
+<h3>Imperative Code</h3>
+<p>The imperative code is simply stubs to get something basic working.</p>
+<h4>NotecardController.cs</h4>
+<p>There is no implementation:</p>
+<pre>public class NotecardController :ViewController&lt;NotecardView&gt;
+{
+}</pre>
+<h4>NotecardView.cs</h4>
+<p>The only implementation here is to load something into the browser window:</p>
+<pre>public class NotecardView : UserControl
+{
+  protected WebKitBrowser browser;
+
+  public WebKitBrowser Browser
+  {
+    get { return browser; }
+    set { browser = value; browser.Navigate(&quot;http://www.codeproject.com&quot;); }
+  }
+
+  public NotecardView()
+  {
+  }
+}</pre>
+<h4>ApplicationFormController.cs</h4>
+<p>A method has been added to handle the menu event to add a new notecard:</p>
+<pre>protected void NewNotecard(object sender, EventArgs args)
+{
+  NewDocument(&quot;notecard.xml&quot;);
+}</pre>
+<h3>Declarative Code</h3>
+<p>The notecard shown in the screenshot above is instantiated by notecard.xml.</p>
+<h4>notecard.xml</h4>
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;MycroXaml Name=&quot;Form&quot;
+  xmlns:ixc=&quot;Intertexti.Controllers, Intertexti&quot;
+  xmlns:ixv=&quot;Intertexti.Views, Intertexti&quot;
+  xmlns:ix=&quot;Intertexti, Intertexti&quot;
+  xmlns:wk=&quot;WebKit, WebKitBrowser&quot;
+  xmlns:def=&quot;def&quot;
+  xmlns:ref=&quot;ref&quot;&gt;
+  &lt;ix:GenericDocument ref:Name=&quot;Container&quot; Text=&quot;Notecard&quot;&gt;
+    &lt;ix:Controls&gt;
+      &lt;ixv:NotecardView def:Name=&quot;notecardView&quot; Dock=&quot;Fill&quot;&gt;
+        &lt;ixv:Controls&gt;
+          &lt;wk:WebKitBrowser def:Name=&quot;browser&quot; Dock=&quot;Fill&quot;/&gt;
+        &lt;/ixv:Controls&gt;
+      &lt;/ixv:NotecardView&gt;
+    &lt;/ix:Controls&gt;
+    &lt;ixv:NotecardView ref:Name=&quot;notecardView&quot; Browser=&quot;{browser}&quot;/&gt;
+    &lt;ixc:NotecardController def:Name=&quot;notecardController&quot; View=&quot;{notecardView}&quot;/&gt;
+  &lt;/ix:GenericDocument&gt;
+&lt;/MycroXaml&gt;
+</pre>
+<h4>mainform.xml</h4>
+<p>A new menu item has been added:</p>
+<pre>&lt;wf:ToolStripMenuItem Text=&quot;&amp;amp;Notecard&quot;&gt;
+  &lt;wf:DropDownItems&gt;
+    &lt;wf:ToolStripMenuItem Text=&quot;&amp;amp;New&quot; Click=&quot;{controller.NewNotecard}&quot;/&gt;
+  &lt;/wf:DropDownItems&gt;
+&lt;/wf:ToolStripMenuItem&gt;</pre>
+<h2>Tabbed Browsing</h2>
+<p>A lot of things that I want to organize are actually URL's, so I'm going to 
+stick with the basic concept of navigating and linking together URL's.&nbsp; 
+Some of this will end up being a bit hokey because I'm putting off actually 
+editing notecards until later in this article, but we can get the entire application behavior regarding linkages just by working 
+with URL's.&nbsp; And yes, this will end up creating a tabbed browser 
+application with the ability to organize and associate web pages.&nbsp; Amusing, 
+isn't it?</p>
+<p>What we need first is the 
+ability to associate four things with a notecard:</p>
+<ol>
+	<li>The desired URL</li>
+	<li>A table of contents label</li>
+	<li>Keywords, which will be used to generate the index information</li>
+	<li>Linkage, allowing us to describe that a notecard is associated with 
+	another notecard</li>
+</ol>
+<h3>UI Changes</h3>
+<p>The first three items above (URL, TOC, and Keywords) are a standard part of 
+each notecard.&nbsp; The question becomes, should this information be associated 
+with each notecard or in a location that is context-specific to the selected 
+notecard?&nbsp; I've opted for the second option, as this allows us to remove 
+some of the clutter that we don't need to be looking at when simply navigating 
+the data.&nbsp; Ideally, this should be another DockPanel pane, giving the user 
+the flexibility to move it around where they want:</p>
+<p><img border="0" src="metadata.png" width="504" height="100"></p>
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;MycroXaml Name=&quot;Form&quot;
+  xmlns:ix=&quot;Intertexti, Intertexti&quot;
+  xmlns:ixctrl=&quot;Intertexti.Controls, Intertexti&quot;
+  xmlns:ixc=&quot;Intertexti.Controllers, Intertexti&quot;
+  xmlns:def=&quot;def&quot;
+  xmlns:ref=&quot;ref&quot;&gt;
+  &lt;ix:GenericPane ref:Name=&quot;Container&quot; TabText=&quot;Notecard Info&quot; ClientSize=&quot;400, 190&quot; BackColor=&quot;White&quot; ShowHint=&quot;DockTop&quot;&gt;
+  &lt;ixc:MetadataController def:Name=&quot;controller&quot; AppController=&quot;{ApplicationFormController}&quot;/&gt;
+    &lt;ix:Controls&gt;
+      &lt;ixctrl:LabeledTextBox LabelText=&quot;URL:&quot; Location=&quot;5, 5&quot; TextDataChanged=&quot;controller.NavigateToURL&quot;/&gt;
+      &lt;ixctrl:LabeledTextBox LabelText=&quot;TOC:&quot; Location=&quot;5, 30&quot;/&gt;
+      &lt;ixctrl:LabeledTextBox LabelText=&quot;Tags:&quot; Location=&quot;5, 55&quot;/&gt;
+    &lt;/ix:Controls&gt;
+  &lt;/ix:GenericPane&gt;
+&lt;/MycroXaml&gt;</pre>
+<h3>Tracking the Active Notecard</h3>
+<p>In the notecard XML, I've added the line:</p>
+<pre>&lt;ixa:RegisterDocumentController 
+  App=&quot;{ApplicationFormController}&quot; 
+  Container=&quot;{Container}&quot; 
+  Controller=&quot;{controller}&quot;/&gt;</pre>
+<p>Note the markup element RegisterDocumentController.&nbsp; This is a serious 
+&quot;cheat&quot; on my part, providing the capability to add &quot;actions&quot; through the 
+instantiation and post-initialization of instances.&nbsp; The following diagram 
+illustrates why we need this:</p>
+<p><img border="0" src="controllers1.png" width="360" height="180"></p>
+<p>The question is, how do we get the MetadataController to tell the 
+NotecardController to navigate to a particular URL?&nbsp; Furthermore, there can 
+be multiple notecards displayed at the same time, so we need a way to track the 
+active notecard.&nbsp; DockPanelSuite provides an event for keeping track of the 
+active notecard, which we wire up in the mainForm markup, as this is an event 
+provided by DockPanel:</p>
+<pre>&lt;wfui:DockPanel def:Name=&quot;dockPanel&quot; Dock=&quot;Fill&quot; ActiveDocumentChanged=&quot;{controller.ActiveDocumentChanged}&quot;/&gt;</pre>
+<p>Implemented in the ApplicationFormController as:</p>
+<pre>public IDocumentController ActiveDocumentController { get; protected set; }
+
+protected void ActiveDocumentChanged(object sender, EventArgs args)
+{
+  DockPanel dockPanel = (DockPanel)sender;
+  IDockContent content = dockPanel.ActiveDocument;
+  ActiveDocumentController = documentControllerMap[content];
+}</pre>
+<p>However, we still need to <i>register</i> the controller associated with the 
+dock content, which is what the &quot;action&quot; RegisterDocumentController does:</p>
+<pre>public class RegisterDocumentController : DeclarativeAction
+{
+  public ApplicationFormController App { get; protected set; }
+  public IDockContent Container { get; protected set; }
+  public IDocumentController Controller { get; protected set; }
+
+  public override void EndInit()
+  {
+    App.RegisterDocumentController(Container, Controller);
+  }
+}</pre>
+<p>And in the application controller:</p>
+<pre>public void RegisterDocumentController(IDockContent content, IDocumentController controller)
+{
+  documentControllerMap[content] = controller;
+}</pre>
+<p>Now, the metadata controller can get the active notecard controller from the 
+application controller -- three controllers are involved!</p>
+<pre>public class MetadataController
+{
+  public ApplicationFormController AppController { get; set; }
+
+  public void NavigateToURL(string url)
+  {
+    ((INotecardController)AppController.ActiveDocumentController).NavigateToURL(url);
+  }
+}</pre>
+<p>Since we only have one kind of document, implemented as an 
+INotecardController, we can safely cast the controller.&nbsp; The above diagram 
+now looks like this:</p>
+<p><img border="0" src="controllers2.png" width="479" height="252"></p>
+<p>Of course, we also need the ability to remove the entries in the 
+content-controller map.&nbsp; This is done by wiring up the DockPanel event:</p>
+<pre>&lt;wfui:DockPanel 
+  def:Name=&quot;dockPanel&quot; 
+  Dock=&quot;Fill&quot; 
+  ActiveDocumentChanged=&quot;{controller.ActiveDocumentChanged}&quot; 
+  <b>ContentRemoved=&quot;{controller.ContentRemoved}</b>&quot;/&gt;</pre>
+<p>and providing the implementation in the application controller:</p>
+<pre>protected void ContentRemoved(object sender, DockContentEventArgs e)
+{
+  documentControllerMap.Remove(e.Content);
+}</pre>
+<p>One last little nuance -- by capturing the DocumentTitledChanged event of the 
+Browser control:</p>
+<pre>&lt;wk:WebKitBrowser 
+  def:Name=&quot;browser&quot; 
+  Dock=&quot;Fill&quot; 
+  <b>DocumentTitleChanged=&quot;{controller.DocumentTitleChanged}</b>&quot;/&gt;</pre>
+<p>We can set the title of the tab:</p>
+<pre>protected void DocumentTitleChanged(object sender, EventArgs args)
+{
+  ((GenericDocument)View.Parent).Text = View.Browser.DocumentTitle;
+}</pre>
+<p>We now have a non-persisting multi-tab browser:</p>
+<p><img border="0" src="multitabbrowser.png" width="705" height="281"></p>
+<h2>Persistence - The Model</h2>
+<p>It would behoove us to create and wire-up the model.&nbsp; As you probably 
+tell, I am not a model-driven-developer -- models tend to change a lot as the UI 
+is being developed, so I like to get some of the UI aspects in place before 
+constructing the model.&nbsp; Then again, this approach works well when 
+implementing on the fly with only a thin paper design.&nbsp; If I were working 
+with a fully storyboarded application, then yes, probably the model would be a 
+good place to start, but still, it's less instant-gratifying.</p>
+<p>In another radical approach, I'm not going to implement persistence with a 
+third party database; a .NET DataSet is perfectly adequate for the job at hand 
+-- persistable and relational.&nbsp; Also, keep in mind that the layout of the 
+UI (a model in its own right) is being handled completely by DockPanelSuite, so 
+we don't need to worry about that.&nbsp; </p>
+<p>The model that we need at this point looks like this:</p>
+<p><img border="0" src="modeldiagram.png" width="519" height="378"></p>
+<p>See <a href="#Appendix_A_-_Defining_and_Loading_the_Schema">Appendix A</a> 
+for how the schema is declared and instantiated.</p>
+<p>See <a href="#Appendix_B_-_Model_Persistence_Methods">Appendix B</a> for the model persistence methods.</p>
+<p>See <a href="#Appendix_C:_The_NotecardRecord_Implementation">Appendix C</a> for the NotecardRecord implementation.</p>
+<p>Appendices A-C are just boilerplate schema and data management code.&nbsp; 
+The more interesting model code is in the application specific features.&nbsp; The model, in addition to maintaining the DataSet instance, also provides a 
+property allowing a controller to get or set the active notecard record:</p>
+<pre>public NotecardRecord ActiveNotecardRecord { get; set; }</pre>
+<p>The active record is initialized when a new notecard is created:</p>
+<pre>public NotecardRecord NewNotecard()
+{
+  DataRow row = NewRow(&quot;Notecards&quot;); 
+  ActiveNotecardRecord = new NotecardRecord(row);
+
+  return ActiveNotecardRecord;
+}
+
+protected DataRow NewRow(string tableName)
+{
+  DataRow row = dataSet.Tables[&quot;Notecards&quot;].NewRow();
+  dataSet.Tables[&quot;Notecards&quot;].Rows.Add(row);
+
+return row;
+}</pre>
+<p>This occurs in the application's controller when a new notecard request 
+(from the menu) is made:</p>
+<pre>protected void NewNotecard(object sender, EventArgs args)
+{
+  NewDocument(&quot;notecard.xml&quot;);
+  NotecardRecord notecard = ApplicationModel.NewNotecard();
+  notecard.IsOpen = true;
+  ((NotecardController)ActiveDocumentController).SetNotecardRecord(notecard);
+}</pre>
+<p>Furthermore, each controller maintains the notecard record instance to which 
+it is associated.&nbsp; Therefore, when the notecard in selected, the controller 
+can update the metadata panel controls as well as the active record:</p>
+<pre>public void IsActive()
+{
+  // We may not have a record associated with the document!
+  // This happens because DockPanelSuite opens documents as persisted in the layout.
+  // TODO: Fix this, so documents are not persisted in the layout! We should always open with no documents!
+  if (notecardRecord != null)
+  {
+    ApplicationModel.ActiveNotecardRecord = notecardRecord;
+    ApplicationController.MetadataController.UpdateURL(notecardRecord.URL);
+    ApplicationController.MetadataController.UpdateTOC(notecardRecord.TableOfContents);
+    ApplicationController.MetadataController.UpdateTags(notecardRecord.Tags);
+  }
+}</pre>
+<p>When the metadata is updated, the metadata controller can update the active notecard 
+record (the record's URL is updated actually in the notecard controller):</p>
+<pre>public void SetTableOfContents(string toc)
+{
+  ApplicationModel.ActiveNotecardRecord.TableOfContents = toc;
+}
+
+public void SetTags(string tags)
+{
+  ApplicationModel.ActiveNotecardRecord.Tags = tags;
+}</pre>
+<p>Lastly, when a DataSet is loaded, a query is executed for all the notecards 
+that were designated as &quot;open&quot; in the session associated with the DataSet:</p>
+<pre>public class ApplicationModel
+{
+  ...
+  public List&lt;NotecardRecord&gt; GetOpenNotecards()
+  {
+    List&lt;NotecardRecord&gt; openNotecards = new List&lt;NotecardRecord&gt;();
+
+    dataSet.Tables[&quot;Notecards&quot;].AsEnumerable().
+      Where(t =&gt; t.Field&lt;bool&gt;(&quot;IsOpen&quot;)).
+      ForEach(t =&gt; openNotecards.Add(new NotecardRecord(t)));
+
+    return openNotecards;
+  }
+  ...
+}</pre>
+<p>The notecards that were open in the last session when the DataSet was saved are opened and directed to the appropriate URL's:</p>
+<pre>public class ApplicationFormController
+{
+  ...
+  protected void OpenNotecardDocuments(List&lt;NotecardRecord&gt; notecards)
+  {
+    notecards.ForEach(t =&gt;
+    {
+      NewDocument(&quot;notecard.xml&quot;);
+      ((NotecardController)ActiveDocumentController).SetNotecardRecord(t);
+      ((NotecardController)ActiveDocumentController).NavigateToURL(t.URL);
+    });
+  }
+  ...
+}</pre>
+<p>Again, because we only have one kind of document controller, we can safely 
+cast the active document controller to the NotecardController type.</p>
+<p>All of these events and interactions can be illustrated by the following 
+diagram:</p>
+<p><img border="0" src="model1.png" width="624" height="392"></p>
+<h2>Linking Notecards</h2>
+<p>For this prototype, I'm only going to implement linkages between notecards 
+that are currently open (handling potentially thousands of notecards in the 
+dataset is not exactly feasible at the moment.)&nbsp; Wanting to implement this 
+is a right-click operation on a notecard, I discovered that WebKit (the version 
+I'm using, apparently this is fixed in SharpWebKit) doesn't allow me to set the 
+ContextMenuStrip of the WebKitBrowser object, therefore I needed to implement 
+the workaround described in
+<a href="#Appendix_D:_Capturing_Application-Wide_Mouse_Events">Appendix D: 
+Capturing Application-Wide Mouse Events.</a></p>
+<p>Now that we have the right-click feature working correctly, we can create the 
+context menu dynamically based on the open notecards (currently the text is set 
+to the URL, we'll fix that later):</p>
+<pre>public class NotecardView : UserControl
+{ 
+  ...
+  protected void CreateDynamicReferences()
+  {
+    ReferencesMenu.DropDownItems.Clear();
+    ReferencedByMenu.DropDownItems.Clear();
+    List&lt;NotecardController&gt; activeNotecardControllers = ApplicationController.ActiveNotecardControllers;
+
+    activeNotecardControllers.ForEach(t =&gt;
+    {
+      ToolStripMenuItem item1 = new ToolStripMenuItem(t.NotecardRecord.URL);
+      item1.Tag = t;
+      item1.Click += Controller.LinkReferences;
+      ReferencesMenu.DropDownItems.Add(item1);
+
+      ToolStripMenuItem item2 = new ToolStripMenuItem(t.NotecardRecord.URL);
+      item2.Tag = t;
+      item2.Click += Controller.LinkReferencedFrom;
+      ReferencedByMenu.DropDownItems.Add(item2);
+    });
+  }
+...
+}</pre>
+<p>and the controller associated with the view handles the call to the model 
+depending on the direction of the link:</p>
+<pre>public class NotecardController : ViewController&lt;NotecardView&gt;, IDocumentController, INotecardController
+{
+  ...
+  public void LinkReferences(object sender, EventArgs e)
+  {
+    ToolStripMenuItem item = (ToolStripMenuItem)sender;
+    NotecardController refController = (NotecardController)item.Tag;
+    // Create an association between this controller, as the parent, and the refController, as the child.
+    ApplicationModel.Associate(NotecardRecord, refController.NotecardRecord);
+  }
+
+  public void LinkReferencedFrom(object sender, EventArgs e)
+  {
+    ToolStripMenuItem item = (ToolStripMenuItem)sender;
+    NotecardController refController = (NotecardController)item.Tag;
+    // Create an association between this controller, as the child, and the refController, as the parent.
+    ApplicationModel.Associate(refController.NotecardRecord, NotecardRecord);
+  }
+  ...
+}</pre>
+<p>and finally the model handles the actual manipulation of the DataSet:</p>
+<pre>public class ApplicationModel
+{
+  ...
+  public void Associate(NotecardRecord parent, NotecardRecord child)
+  {
+    DataRow row = dataSet.Tables[&quot;NotecardReferences&quot;].NewRow();
+    row[&quot;NotecardParentID&quot;] = parent.ID;
+</pre>
+<pre>    row[&quot;NotecardChildID&quot;] = child.ID;
+    dataSet.Tables[&quot;NotecardReferences&quot;].Rows.Add(row);
+  }
+  ...
+}</pre>
+<p>We also need to query the &quot;references&quot; and &quot;referenced from&quot; notecards, 
+also implemented in the model.&nbsp; Some of this code relies on Juan Francisco 
+Morales Larios' excellent article on
+<a href="http://www.codeproject.com/Articles/488643/LinQ-Extended-Joins">Linq 
+Extended Joins</a>.</p>
+<pre>public List&lt;NotecardRecord&gt; GetReferences()
+{
+  List&lt;NotecardRecord&gt; references = this[&quot;Notecards&quot;].Join(this[&quot;NotecardReferences&quot;].Where(t =&gt; t.Field&lt;int&gt;(&quot;NotecardParentID&quot;) == ActiveNotecardRecord.ID),
+  pk =&gt; pk.Field&lt;int&gt;(&quot;ID&quot;),
+  fk =&gt; fk.Field&lt;int&gt;(&quot;NotecardChildID&quot;),
+  (pk, fk) =&gt; new NotecardRecord(pk)).ToList();
+
+  return references;
+}
+
+
+public List&lt;NotecardRecord&gt; GetReferencedFrom()
+{
+  List&lt;NotecardRecord&gt; references = this[&quot;Notecards&quot;].Join(this[&quot;NotecardReferences&quot;].Where(t =&gt; t.Field&lt;int&gt;(&quot;NotecardChildID&quot;) == ActiveNotecardRecord.ID),
+  pk =&gt; pk.Field&lt;int&gt;(&quot;ID&quot;),
+  fk =&gt; fk.Field&lt;int&gt;(&quot;NotecardParentID&quot;),
+  (pk, fk) =&gt; new NotecardRecord(pk)).ToList();
+
+ return references;
+}</pre>
+<p>For the table of contents, we also need the ability to get root notecards 
+(those that aren't referenced by other notecards):</p>
+<pre>public List&lt;NotecardRecord&gt; GetRootNotecards()
+{
+  List&lt;NotecardRecord&gt; rootRecs = this[&quot;Notecards&quot;].LeftExcludingJoin(
+  this[&quot;NotecardReferences&quot;], 
+  pk =&gt; pk.Field&lt;int&gt;(&quot;ID&quot;), 
+  fk =&gt; fk.Field&lt;int&gt;(&quot;NotecardChildID&quot;), 
+  (pk, fk) =&gt; pk).Select(t =&gt; new NotecardRecord(t)).ToList();
+
+  return rootRecs;
+}</pre>
+<h3>The References Views</h3>
+<p>We now have all the pieces to fill in the data in the TOC, indices, 
+references, and referenced by panels.&nbsp; Note that some of the markup 
+illustrated earlier has changed -- I have now implemented controller and view 
+classes for each of the panes.</p>
+<p>The &quot;links to&quot; (aka references) and &quot;referenced by&quot; (aka referenced from) 
+implementations are quite trivial.&nbsp; Both views derive from:</p>
+<pre>public class ReferenceView : UserControl
+{
+  public ApplicationModel Model { get; protected set; }
+  public TreeView TreeView { get; protected set; }
+
+  public void UpdateTree(List&lt;NotecardRecord&gt; refs)
+  {
+    TreeView.Nodes.Clear();
+    refs.ForEach(r =&gt;
+    {
+      TreeNode node = new TreeNode(r.URL);
+      node.Tag = r;
+      TreeView.Nodes.Add(node);
+    });
+  }
+}</pre>
+<p>where ReferencesView gets the references of the active record:</p>
+<pre>public class ReferencesView : ReferenceView 
+{
+  public void UpdateView()
+  {
+    List&lt;NotecardRecord&gt; refs = Model.GetReferences();
+    UpdateTree(refs);
+  }
+}</pre>
+<p>as compared to ReferencesFromView, which gets the &quot;references from&quot; other 
+notecards to the active record:</p>
+<pre>public class ReferencedFromView : ReferenceView
+{
+  public void UpdateView()
+  {
+    List&lt;NotecardRecord&gt; refs = Model.GetReferencedFrom();
+    UpdateTree(refs);
+  }
+}</pre>
+<h3>The Index View</h3>
+<p>This view accumulates and indexes the tags for each notecard and has the most 
+code of any of the views:</p>
+<pre>public class IndexView : UserControl
+{
+  public ApplicationModel Model { get; protected set; }
+  public TreeView TreeView { get; protected set; }
+
+  public void RefreshView()
+  {
+    Dictionary&lt;string, List&lt;NotecardRecord&gt;&gt; tagRecordMap;
+
+    TreeView.Nodes.Clear();
+    tagRecordMap = BuildTagRecordMap();
+
+    // Sort the list by tag value.
+    var orderedIndexList = tagRecordMap.OrderBy((item)=&gt;item.Key);
+
+    BuildTree(orderedIndexList);
+  }
+
+  protected Dictionary&lt;string, List&lt;NotecardRecord&gt;&gt; BuildTagRecordMap()
+  {
+    Dictionary&lt;string, List&lt;NotecardRecord&gt;&gt; tagRecordMap = new Dictionary&lt;string, List&lt;NotecardRecord&gt;&gt;();
+
+    // Build the view model, which is a list of references for tag item.
+    Model.ForEachNotecard(rec =&gt;
+    {
+      Model.GetTags(rec).Where(t=&gt;!String.IsNullOrEmpty(t)).ForEach(t =&gt;
+      {
+        List&lt;NotecardRecord&gt; records;
+
+        if (!tagRecordMap.TryGetValue(t, out records))
+        {
+          records = new List&lt;NotecardRecord&gt;();
+          tagRecordMap[t] = records;
+        }
+
+        records.Add(rec);
+      });
+    });
+
+  return tagRecordMap;
+  }
+
+  protected void BuildTree(IOrderedEnumerable&lt;KeyValuePair&lt;string, List&lt;NotecardRecord&gt;&gt;&gt; orderedIndexList)
+  {
+    orderedIndexList.ForEach(item =&gt;
+    {
+      TreeNode tn = new TreeNode(item.Key);
+      TreeView.Nodes.Add(tn);
+
+      if (item.Value.Count == 1)
+      {
+        // Only one notecard for this index item, so set the node's tag to the notecard record.
+        tn.Tag = item.Value[0];
+      }
+      else if (item.Value.Count &gt; 1)
+      {
+        // Multiple notecards for this index item, so create child nodes and set the node's tag to the associated notecard record.
+        item.Value.ForEach(rec =&gt;
+        {
+          TreeNode tn2 = new TreeNode(rec.URL);
+          tn2.Tag = rec;
+          tn.Nodes.Add(tn2);
+        });
+      }
+    });
+  }
+}</pre>
+<h3>Table of Contents View</h3>
+<p>The table of contents is built from root notecards (those that aren't 
+referenced anywhere) and excludes any references that do not have a TOC entry, 
+as well as ensuring we don't get into an infinite recursion state if there are 
+circular references:</p>
+<pre>public class TableOfContentsView : UserControl
+{
+  public ApplicationModel Model { get; protected set; }
+  public TreeView TreeView { get; protected set; }
+
+  protected List&lt;int&gt; encounteredRecords;
+
+  public void RefreshView()
+  {
+    encounteredRecords = new List&lt;int&gt;();
+    List&lt;NotecardRecord&gt; rootRecs = Model.GetRootNotecards();
+    TreeView.Nodes.Clear();
+    PopulateTree(rootRecs);
+  }
+
+  protected void PopulateTree(List&lt;NotecardRecord&gt; rootRecs)
+  {
+    rootRecs.Where(r=&gt;!String.IsNullOrEmpty(r.TableOfContents)).ForEach(r =&gt;
+    {
+      encounteredRecords.Add(r.ID);
+      TreeNode tn = new TreeNode(r.TableOfContents);
+      tn.Tag = r;
+      TreeView.Nodes.Add(tn);
+      PopulateChildren(tn, r);
+    });
+  }
+
+  protected void PopulateChildren(TreeNode node, NotecardRecord rec)
+  {
+    List&lt;NotecardRecord&gt; childRecs = Model.GetReferences(rec);
+
+    childRecs.Where(r=&gt;(!String.IsNullOrEmpty(r.TableOfContents)) &amp;&amp; (!encounteredRecords.Contains(r.ID))).ForEach(r =&gt;
+    {
+      encounteredRecords.Add(r.ID);
+      TreeNode tn = new TreeNode(r.TableOfContents);
+      tn.Tag = r;
+      node.Nodes.Add(tn);
+      // Recurse into grandchildren, etc.
+      PopulateChildren(tn, r);
+    });
+  }
+}</pre>
+<h2>Using What We've Got</h2>
+<p>At this point, let's take a small breather and, using just URL's (both from 
+the web and local files), put together some recipe notecards.&nbsp; I want to 
+organize my recipes by breakfast, lunch, and dinner, and I want the tags to be 
+the ingredients so if I'm interested in a recipe that contains broccoli, I can 
+find all those recipes.</p>
+<p>First off, I created by hand some basic files (we'll implement a content 
+editor later), that all look similar to this:</p>
+<pre>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0 Transitional//EN&quot;&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Recipes&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+   &lt;p&gt;Recipes&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>These are going to be placeholders for my table of contents.&nbsp; I add new 
+notecards for each of my placeholders, generate the TOC, and we get a flat TOC:</p>
+<p><img border="0" src="recipes1.png" width="638" height="250"></p>
+<p>This isn't what we want - we want Recipes to references Breakfast, Lunch, and 
+Dinner, so we select the Recipes notecard, and for each mealtime, right click 
+and create the association:</p>
+<p><img border="0" src="recipes2.png" width="447" height="184"></p>
+<p>We now get a properly organized TOC and also note that the &quot;Links To&quot; pane 
+shows what notecards the Recipes notecard references:</p>
+<p><img border="0" src="recipes3.png" width="640" height="253"></p>
+<p>Now we can add some recipes from the Internet, and after making the 
+appropriate associations of a recipe to a mealtime, as well as populating the 
+tags, we have the beginnings of a recipe book:</p>
+<p><img border="0" src="recipes4.png" width="800" height="600"></p>
+<p>The things to note here are:</p>
+<ul>
+	<li>the table of contents is a multi-level tree of all notecards that have a 
+	TOC value.</li>
+<li>the &quot;Links To&quot; pane displays the notecard names that the current notecard 
+(&quot;Dinner&quot;) references.</li>
+	<li>the &quot;Referenced By&quot; pane displays the notecard names that reference the 
+	current nodecard (&quot;Dinner&quot;).</li>
+<li>the &quot;Index&quot; pane displays all the tags (our ingredients for all recipes) and 
+if there is more than one notecard, shows the notecard options as sub-node 
+items.</li>
+</ul>
+<h3>Handling TreeView Clicks</h3>
+<p>Of course, we want to be able to click on a TOC, index, or reference node and 
+have it open the URL.&nbsp; The event is wired up in the markup, for example:</p>
+<pre>&lt;wf:TreeView def:Name=&quot;treeView&quot; Dock=&quot;Fill&quot; NodeMouseClick=&quot;{ApplicationFormController.OpenNotecard}&quot;&gt;</pre>
+<p>and is routed to the application controller:</p>
+<pre>protected void OpenNotecard(object sender, TreeNodeMouseClickEventArgs args)
+{
+  NotecardRecord rec = args.Node.Tag as NotecardRecord;
+
+  if (rec != null)
+  {
+    if (!rec.IsOpen)
+    {
+      NewDocument(&quot;notecard.xml&quot;);
+      ((NotecardController)ActiveDocumentController).SetNotecardRecord(rec);
+      ((NotecardController)ActiveDocumentController).NavigateToURL(rec.URL);
+      ((NotecardController)ActiveDocumentController).IsActive();
+      rec.IsOpen = true;
+    }
+    else
+    {
+      // Don't open a new document, select the one that is already open.
+      IDockContent content = documentControllerMap.Single(t=&gt;((NotecardController)t.Value).NotecardRecord==rec).Key;
+      content.DockHandler.Show();
+    }
+  }
+}</pre>
+<h2>Editing Notecard Content</h2>
+<p>Lastly (at least for this prototype implementation) we want the user to be 
+able to add actual content.&nbsp; 
+Since the notecard is based on a web browser, it would certainly make sense to 
+use an HTML editor, and I found a decent one
+<a href="http://code.msdn.microsoft.com/windowsdesktop/WinForms-HTML-Editor-01dbce1a/view/SourceCode#content">
+here</a>.&nbsp; Note that this is not intended to edit existing web pages - this 
+for creating your own <i>simple</i> content (you do <i>not</i> want to use this 
+for editing web pages from the Internet, among other things, all of the 
+stylesheet information is lost.)</p>
+<p>The HTML editor is added as a hidden control in the notepad view markup:</p>
+<pre>&lt;editor:HtmlEditorControl def:Name=&quot;htmlEditor&quot; Dock=&quot;Fill&quot; Visible=&quot;false&quot;/&gt; 
+&lt;wk:WebKitBrowser def:Name=&quot;browser&quot; Dock=&quot;Fill&quot; .../&gt;</pre>
+<p>and a right-click context menu option is added:</p>
+<pre>&lt;wf:ToolStripMenuItem def:Name=&quot;editHtml&quot; Text=&quot;&amp;amp;Edit Document&quot; Click=&quot;{controller.EditHtml}&quot;/&gt;</pre>
+<p>which the notepad controller handles (this is a bit kludgy right now):</p>
+<pre>protected void EditHtml(object sender, EventArgs args)
+{
+  if (!editing)
+  {
+    editing = true;
+    View.BeginHtmlEditing();
+  }
+  else
+  {
+    editing = false;
+    View.EndHtmlEditing();
+    // Must get the new text from the HtmlEditor, as the WebKit Browser control
+    // won't have updated the return value of the Browser.DocumentText property!
+    NotecardRecord.HTML = View.HtmlEditor.InnerHtml;
+  }
+}</pre>
+<p>and the view does the rest:</p>
+<pre>public void BeginHtmlEditing()
+{
+  HtmlEditor.InnerHtml = Browser.DocumentText;
+  Browser.Visible = false;
+  HtmlEditor.Visible = true;
+  EditHtml.Text = &quot;&amp;Save Html&quot;;
+}
+
+public void EndHtmlEditing()
+{
+  Browser.DocumentText = HtmlEditor.InnerHtml;
+  HtmlEditor.Visible = false;
+  Browser.Visible = true;
+  EditHtml.Text = &quot;&amp;Edit Html&quot;;
+}</pre>
+<p>Now the custom content simply needs to be handled correctly when we open a 
+record, which means, instead of calling NavigateToURL, we're going to add the 
+method ShowDocument and let the controller determine whether to use a URL or the 
+custom HTML:</p>
+<pre>public void ShowDocument()
+{
+  if (!(String.IsNullOrEmpty(NotecardRecord.HTML)))
+  {
+    View.Browser.DocumentText = NotecardRecord.HTML;
+  }
+  else
+  {
+    NavigateToURL(NotecardRecord.URL);
+  }
+}</pre>
+<p>So, now by right-clicking on Edit Notecard:</p>
+<p><img border="0" src="edit1.png" width="242" height="161"></p>
+<p>I can create my own notecards using a snazzy HTML editor:</p>
+<p><img border="0" src="edit2.png" width="606" height="264"></p>
+<p>and I can now cross reference my custom notecards in the same why as with 
+HTML files or URL's:</p>
+<p><img border="0" src="edit3.png" width="800" height="600"> </p>
+<h2>Conclusion</h2>
+<p>At the end of the day (or the week, in this case, as it took about a week to 
+put this all together) we end up with a usable prototype of my vision of 
+resurrecting Apple's <a href="http://en.wikipedia.org/wiki/HyperCard">HyperCard</a> 
+concept. Maybe I'll be sued!&nbsp; In any case, while this is a sufficiently 
+usable application at this point, there are still a lot of rough 
+edges--usability issues that need to be addressed (for example, you have to tell 
+the program to regenerate the TOC and index from the View / Refresh menu) and 
+probably lots of strange bugs.&nbsp; But that work will be left for another day.&nbsp; 
+Also, there's some useful functionality missing, like being able to delete 
+notecards!&nbsp; You will also note that this is an x86 application because 
+WebKit runs only in 32 bit mode.</p>
+<p>As usual, if you're interested in contributing to this project, please let me 
+know.&nbsp; Personally, I'm interested in developing this into a viable 
+commercial product, but the code presented here is available to the community.</p>
+<h2><a name="Appendix_A_-_Defining_and_Loading_the_Schema">Appendix A - Defining and Loading the Schema</a></h2>
+<p>The schema is represented as an object graph that instantiates a DataSet:</p>
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+&lt;MycroXaml Name=&quot;Schema&quot;
+  xmlns:d=&quot;System.Data, System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089&quot;
+  xmlns:def=&quot;def&quot;
+  xmlns:ref=&quot;ref&quot;&gt;
+  &lt;d:DataSet Name=&quot;Dataset&quot;&gt;
+    &lt;d:Tables&gt;
+      &lt;d:DataTable Name=&quot;Notecards&quot; TableName=&quot;Notecards&quot;&gt;
+        &lt;d:Columns&gt;
+          &lt;d:DataColumn Name=&quot;NotecardID&quot; ColumnName=&quot;ID&quot; AllowDBNull=&quot;false&quot; AutoIncrement=&quot;true&quot; DataType=&quot;System.Int32&quot; /&gt;
+          &lt;d:DataColumn ColumnName=&quot;TableOfContents&quot; AllowDBNull=&quot;true&quot; DataType=&quot;System.String&quot;/&gt;
+          &lt;d:DataColumn ColumnName=&quot;URL&quot; AllowDBNull=&quot;true&quot; DataType=&quot;System.String&quot;/&gt;
+          &lt;d:DataColumn ColumnName=&quot;Title&quot; AllowDBNull=&quot;true&quot; DataType=&quot;System.String&quot;/&gt;
+          &lt;d:DataColumn ColumnName=&quot;HTML&quot; AllowDBNull=&quot;true&quot; DataType=&quot;System.String&quot;/&gt;
+          &lt;d:DataColumn ColumnName=&quot;IsOpen&quot; AllowDBNull=&quot;true&quot; DataType=&quot;System.Boolean&quot;/&gt;
+        &lt;/d:Columns&gt;
+      &lt;/d:DataTable&gt;
+      &lt;d:DataTable Name=&quot;NotecardReferences&quot; TableName=&quot;NotecardReferences&quot;&gt;
+        &lt;d:Columns&gt;
+          &lt;d:DataColumn Name=&quot;NotecardReferenceID&quot; ColumnName=&quot;ID&quot; AllowDBNull=&quot;false&quot; AutoIncrement=&quot;true&quot; DataType=&quot;System.Int32&quot;/&gt;
+          &lt;d:DataColumn Name=&quot;NotecardParentID&quot; ColumnName=&quot;NotecardParentID&quot; AllowDBNull=&quot;false&quot; DataType=&quot;System.Int32&quot;/&gt;
+          &lt;d:DataColumn Name=&quot;NotecardChildID&quot; ColumnName=&quot;NotecardChildID&quot; AllowDBNull=&quot;false&quot; DataType=&quot;System.Int32&quot;/&gt;
+        &lt;/d:Columns&gt;
+      &lt;/d:DataTable&gt;
+      &lt;d:DataTable Name=&quot;Metadata&quot; TableName=&quot;Metadata&quot;&gt;
+        &lt;d:Columns&gt;
+          &lt;d:DataColumn Name=&quot;MetadataID&quot; ColumnName=&quot;ID&quot; AllowDBNull=&quot;false&quot; AutoIncrement=&quot;true&quot; DataType=&quot;System.Int32&quot;/&gt;
+          &lt;d:DataColumn Name=&quot;Metadata_NotecardID&quot; ColumnName=&quot;NotecardID&quot; AllowDBNull=&quot;false&quot; DataType=&quot;System.Int32&quot;/&gt;
+          &lt;d:DataColumn ColumnName=&quot;Tag&quot; AllowDBNull=&quot;false&quot; DataType=&quot;System.String&quot;/&gt;
+        &lt;/d:Columns&gt;
+      &lt;/d:DataTable&gt;
+    &lt;/d:Tables&gt;
+    &lt;d:Relations&gt;
+      &lt;d:DataRelation Name=&quot;FK_Metadata_Notecard&quot; ChildColumn=&quot;{Metadata_NotecardID}&quot; ParentColumn=&quot;{NotecardID}&quot;/&gt;
+      &lt;d:DataRelation Name=&quot;FK_NotecardRef_Notecard1&quot; ChildColumn=&quot;{NotecardParentID}&quot; ParentColumn=&quot;{NotecardID}&quot;/&gt;
+      &lt;d:DataRelation Name=&quot;FK_NotecardRef_Notecard2&quot; ChildColumn=&quot;{NotecardChildID}&quot; ParentColumn=&quot;{NotecardID}&quot;/&gt;
+    &lt;/d:Relations&gt;
+    &lt;d:DataTable ref:Name=&quot;Notecards&quot; PrimaryKey=&quot;{NotecardID}&quot;/&gt;
+    &lt;d:DataTable ref:Name=&quot;NotecardReferences&quot; PrimaryKey=&quot;{NotecardReferenceID}&quot;/&gt;
+    &lt;d:DataTable ref:Name=&quot;Metadata&quot; PrimaryKey=&quot;{MetadataID}&quot;/&gt;
+  &lt;/d:DataSet&gt;
+&lt;/MycroXaml&gt;</pre>
+<p>Unfortunately, certain properties (DataType) and classes (DataRelation) are 
+not particularly friendly to declarative instantiation and need some &quot;help&quot;:</p>
+<pre>public static class SchemaHelper
+{
+  public static DataSet CreateSchema()
+  {
+    MycroParser mp = new MycroParser();
+    // Instantiation of schemas using .NET classes needs some help.
+    mp.CustomAssignProperty += new CustomAssignPropertyDlgt(CustomAssignProperty);
+    mp.InstantiateClass += new InstantiateClassDlgt(InstantiateClass);
+    mp.UnknownProperty += new UnknownPropertyDlgt(UnknownProperty);
+    XmlDocument doc = new XmlDocument();
+    doc.Load(&quot;schema.xml&quot;);
+    mp.Load(doc, &quot;Schema&quot;, null);
+    DataSet dataSet = (DataSet)mp.Process();
+
+    return dataSet;
+}
+
+  public static void CustomAssignProperty(object sender, CustomPropertyEventArgs pea)
+  {
+    if (pea.PropertyInfo.Name == &quot;DataType&quot;)
+    {
+      Type t = Type.GetType(pea.Value.ToString());
+      pea.PropertyInfo.SetValue(pea.Source, t, null);
+      pea.Handled = true;
+    }
+    else if (pea.PropertyInfo.Name == &quot;PrimaryKey&quot;)
+    {
+      pea.PropertyInfo.SetValue(pea.Source, new DataColumn[] { (DataColumn)pea.Value }, null);
+      pea.Handled = true;
+    }
+  }
+
+  public static void InstantiateClass(object sender, ClassEventArgs cea)
+  {
+    MycroParser mp = (MycroParser)sender;
+
+    if (cea.Type.Name == &quot;DataRelation&quot;)
+    {
+      string name = cea.Node.Attributes[&quot;Name&quot;].Value;
+      string childColumnRef = cea.Node.Attributes[&quot;ChildColumn&quot;].Value;
+      string parentColumnRef = cea.Node.Attributes[&quot;ParentColumn&quot;].Value;
+      DataColumn dcChild = (DataColumn)mp.GetInstance(childColumnRef.Between('{', '}'));
+      DataColumn dcParent = (DataColumn)mp.GetInstance(parentColumnRef.Between('{', '}'));
+      cea.Result = new DataRelation(name, dcParent, dcChild);
+      cea.Handled = true;
+    }
+  }
+
+  public static void UnknownProperty(object sender, UnknownPropertyEventArgs pea)
+  {
+    // Ignore these attributes.
+    // TODO: add the element name into the args, so we can also test the element for which we want to ignore certain properties.
+    if ((pea.PropertyName == &quot;ChildColumn&quot;) || (pea.PropertyName == &quot;ParentColumn&quot;))
+    {
+      pea.Handled = true;
+    }
+  }
+}</pre>
+<h2><a name="Appendix_B_-_Model_Persistence_Methods">Appendix B - Model Persistence Methods</a></h2>
+<p>This handles the saving and loading of the DataSet to an XML file:</p>
+<pre>public class ApplicationModel
+{
+protected DataSet dataSet;
+protected string filename;
+
+  public ApplicationModel()
+  {
+    dataSet = SchemaHelper.CreateSchema();
+  }
+
+  public void NewModel()
+  {
+    dataSet = SchemaHelper.CreateSchema();
+    filename = String.Empty;
+  }
+
+  public void LoadModel(string filename)
+  {
+    this.filename = filename;
+    dataSet = SchemaHelper.CreateSchema();
+    dataSet.ReadXml(filename, XmlReadMode.IgnoreSchema);
+  }
+
+  public void SaveModel()
+  {
+    dataSet.WriteXml(filename, XmlWriteMode.WriteSchema);
+  }
+
+  public void SaveModelAs(string filename)
+  {
+    this.filename = filename;
+    dataSet.WriteXml(filename, XmlWriteMode.WriteSchema);
+  }
+}</pre>
+<h2><a name="Appendix_C:_The_NotecardRecord_Implementation">Appendix C: The NotecardRecord Implementation</a></h2>
+<p>This is a thin wrapper for the underlying DataRow associated with a notecard 
+record:</p>
+<pre>public class NotecardRecord
+{
+  public string TableOfContents
+  {
+    get { return row.Field&lt;string&gt;(&quot;TableOfContents&quot;); }
+    set { row[&quot;TableOfContents&quot;] = value; }
+  }
+
+  public string URL
+  {
+    get { return row.Field&lt;string&gt;(&quot;URL&quot;); }
+    set { row[&quot;URL&quot;] = value; }
+  }
+
+  public string HTML
+  {
+    get { return row.Field&lt;string&gt;(&quot;HTML&quot;); }
+    set { row[&quot;HTML&quot;] = value; }
+  }
+
+  public string Tags
+  {
+    get { return JoinTags(); }
+    set { ParseTags(value); }
+  }
+
+  public bool IsOpen
+  {
+    get { return row.Field&lt;bool&gt;(&quot;IsOpen&quot;); }
+    set { row[&quot;IsOpen&quot;] = value; }
+  }
+
+  protected DataRow row;
+
+  public NotecardRecord(DataRow row)
+  {
+    this.row = row;
+  }
+
+  protected string JoinTags()
+  {
+    return String.Empty;
+  }
+
+  protected void ParseTags(string tags)
+  {
+  }
+}
+</pre>
+<h2><a name="Appendix_D:_Capturing_Application-Wide_Mouse_Events">Appendix D: 
+Capturing Application-Wide Mouse Events</a></h2>
+<p>This is a complicated workaround that requires first intercepting the 
+application-wide right-click message and then posting (not sending) a custom 
+message to the application to process the event, which in turn needs to make 
+sure that the right-click is actually occurring on a noteacard.&nbsp; Let's 
+begin:</p>
+<p>At startup, we register a custom window message and our custom message 
+filter:</p>
+<pre>[DllImport(&quot;user32.dll&quot;, SetLastError = true, CharSet = CharSet.Auto)]
+static extern uint RegisterWindowMessage(string lpString);
+
+public static void Main()
+{
+  RightClickWindowMessage = RegisterWindowMessage(&quot;IntertextiRightClick&quot;);
+  IMessageFilter myFilter = new MyMessageFilter();
+  Application.AddMessageFilter(myFilter);
+  ...</pre>
+<p>The custom message filter looks for right-click events and posts a message to 
+process the event.&nbsp; The right-click is not filtered, allowing the 
+application to handle it normally.&nbsp; The reason we post the message is that 
+we don't want to process it immediately -- we want to give Windows and the 
+application the opportunity to do whatever it does, which, in our case, it to 
+set focus to the control where the mouse was clicked (this is done for us 
+somewhere).&nbsp; Posting a message adds the message at the end of the Windows 
+message queue, as opposed to SendMessage, which processes the message 
+immediately if the two windows have the same thread.&nbsp; The message filter:</p>
+<pre>public class MyMessageFilter : IMessageFilter
+{
+  [return: MarshalAs(UnmanagedType.Bool)]
+  [DllImport(&quot;user32.dll&quot;, SetLastError = true)]
+  static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+  public bool PreFilterMessage(ref Message m)
+  {
+    if (m.Msg == 0x204) //WM_RBUTTONDOWN
+    {
+      PostMessage(Program.MainForm.Handle, Program.RightClickWindowMessage, m.WParam, m.LParam);
+    }
+
+    return false; // do not filter
+  }
+}</pre>
+<p>Next, we look for our custom right-click message in the application's main 
+form and fire an event:</p>
+<pre>public delegate void RightClickDlgt(int x, int y);
+public class ApplicationFormView : Form
+{
+  public event RightClickDlgt RightClick;
+  ...
+  protected override void WndProc(ref Message m)
+  {
+    if (m.Msg == Program.RightClickWindowMessage)
+    {
+      // client area (x,y)
+      int x = (int)(((ulong)m.LParam) &amp; 0xFFFF);
+      int y = (int)(((ulong)m.LParam) &gt;&gt; 16);
+
+      if (RightClick != null)
+      {
+        RightClick(x, y);
+      }
+    }
+    else
+    {
+      base.WndProc(ref m);
+    }
+  }
+}</pre>
+<p>The event is wired up in the markup:</p>
+<pre>&lt;ixv:ApplicationFormView 
+  ref:Name=&quot;applicationFormView&quot; 
+  DockPanel=&quot;{dockPanel}&quot; 
+  Load=&quot;{controller.LoadLayout}&quot; 
+  Closing=&quot;{controller.Closing}&quot; 
+  <b>RightClick=&quot;{controller.RightClick}</b>&quot;/&gt;</pre>
+<p>and is handled by the application controller, which does nothing more than 
+request that the active document controller show the context menu.</p>
+<pre>protected void RightClick(int x, int y)
+{
+  ActiveDocumentController.ShowContextMenu(x, y);
+}</pre>
+<p>This request is passed to the controller's view (I don't expose the View 
+property to other classes, so we always have to go through this step, because I 
+don't want controllers to talk to views of other controllers):</p>
+<pre>public class NotecardController ...
+{
+  ...
+  public void ShowContextMenu(int x, int y)
+  {
+    View.ShowContextMenu(new Point(x, y));
+  }
+...
+}</pre>
+<p>And in the view, the coordinate is tested.&nbsp; This requires converting the 
+client coordinate of the application's active control to a screen coordinate, 
+then comparing the screen coordinate with the screen coordinate of the notecard 
+window, which for the moment is rather kludgy (the Parent.Parent.Parent thing):</p>
+<pre>public void ShowContextMenu(Point p)
+{
+  // Determine whether the mouse click occurred on the this control:
+
+  // The point is relative to the control that currently has focus.
+  ApplicationFormView app = (ApplicationFormView)Parent.Parent.Parent;
+  Control activeCtrl = (Control)((ApplicationFormView)Parent.Parent.Parent).DockPanel.ActiveContent; // app.ActiveControl;
+
+  // Convert to a screen point relative to the active control where the right-click occurred.
+  Point screenPoint = activeCtrl.PointToScreen(p);
+
+  // Get the screen location for this view.
+  Point viewUpperLeft = PointToScreen(new Point(0, 0));
+  Rectangle viewRect = new Rectangle(viewUpperLeft, Size);
+
+  if (viewRect.Contains(screenPoint))
+  {
+    BrowserContextMenu.Show(PointToScreen(p));
+  }
+}</pre>
+<p>This is quite a bit of work to get the desired behavior, can probably be all 
+ripped out if I were to use a different browser control, and needs cleanup 
+because of the hard-coded dependency on the UI object graph.&nbsp; However, it 
+works, and that's what matters at the moment.</p>
+<h2>References</h2>
+<p><a href="http://www.codeproject.com/Articles/8365/MycroXaml">MycroXaml</a></p>
+<p><a href="http://dockpanelsuite.com/">DockPanelSuite</a></p>
+<p>
+<a href="http://www.codeproject.com/Articles/525541/Decoupling-Content-From-Container-in-Weifen-Luos">DockPanelSuite - Decoupling Content From Container</a></p>
+<p><a href="http://www.codeproject.com/Articles/488643/LinQ-Extended-Joins">Linq 
+Extended Joins</a></p>
+<p>
+<a href="http://code.msdn.microsoft.com/windowsdesktop/WinForms-HTML-Editor-01dbce1a/view/SourceCode">
+WinForms HTML Editor</a></p>
+<p><a href="http://webkitdotnet.sourceforge.net/index.php">WebKit.NET</a></p>
+<p><a href="http://code.google.com/p/open-webkit-sharp/">open-webkit-sharp</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>

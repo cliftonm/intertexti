@@ -1,0 +1,455 @@
+<?xml version="1.0" standalone="yes"?>
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Notecards">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ID" msdata:AutoIncrement="true" type="xs:int" />
+                <xs:element name="TableOfContents" type="xs:string" minOccurs="0" />
+                <xs:element name="URL" type="xs:string" minOccurs="0" />
+                <xs:element name="HTML" type="xs:string" minOccurs="0" />
+                <xs:element name="Title" type="xs:string" default="Notecard" minOccurs="0" />
+                <xs:element name="IsOpen" type="xs:boolean" minOccurs="0" />
+                <xs:element name="IsChecked" type="xs:boolean" minOccurs="0" />
+                <xs:element name="DateCreated" type="xs:dateTime" minOccurs="0" />
+                <xs:element name="DateModified" type="xs:dateTime" minOccurs="0" />
+                <xs:element name="DateLastViewed" type="xs:dateTime" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="NotecardReferences">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ID" msdata:AutoIncrement="true" type="xs:int" />
+                <xs:element name="NotecardParentID" type="xs:int" />
+                <xs:element name="NotecardChildID" type="xs:int" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ID" msdata:AutoIncrement="true" type="xs:int" />
+                <xs:element name="NotecardID" type="xs:int" />
+                <xs:element name="Tag" type="xs:string" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+      <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//Notecards" />
+        <xs:field xpath="ID" />
+      </xs:unique>
+      <xs:unique name="NotecardReferences_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//NotecardReferences" />
+        <xs:field xpath="ID" />
+      </xs:unique>
+      <xs:unique name="Metadata_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+        <xs:selector xpath=".//Metadata" />
+        <xs:field xpath="ID" />
+      </xs:unique>
+      <xs:keyref name="FK_Metadata_Notecard" refer="Constraint1">
+        <xs:selector xpath=".//Metadata" />
+        <xs:field xpath="NotecardID" />
+      </xs:keyref>
+      <xs:keyref name="FK_NotecardRef_Notecard2" refer="Constraint1">
+        <xs:selector xpath=".//NotecardReferences" />
+        <xs:field xpath="NotecardChildID" />
+      </xs:keyref>
+      <xs:keyref name="FK_NotecardRef_Notecard1" refer="Constraint1">
+        <xs:selector xpath=".//NotecardReferences" />
+        <xs:field xpath="NotecardParentID" />
+      </xs:keyref>
+    </xs:element>
+  </xs:schema>
+  <Notecards>
+    <ID>0</ID>
+    <TableOfContents>Welcome</TableOfContents>
+    <HTML>&lt;H1&gt;Welcome!&lt;/H1&gt;
+&lt;P&gt;Welcome to Intertexti, the notecard filing / organizing system!&lt;/P&gt;
+&lt;P&gt;Use the notecards here to learn about Intertexti.&amp;nbsp; Explore the table of contents, navigate the referenced, and click on indexed items.&amp;nbsp; We suggest you begin with clicking on "Learning Your Way Around" in the Table of Contents.&lt;/P&gt;
+&lt;P&gt;Enjoy and please provide any feedback on our forums at &lt;A href="http://www.interexti.com/forums"&gt;http://www.interexti.com/forums&lt;/A&gt;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Welcome</Title>
+    <IsOpen>true</IsOpen>
+    <DateCreated>2013-03-10T11:59:50.3751185-04:00</DateCreated>
+    <DateModified>2013-03-10T12:48:16.1403187-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:50:28.1608699-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>1</ID>
+    <TableOfContents>Learning Your Way Around</TableOfContents>
+    <HTML>&lt;H1&gt;Learning You Way Around&lt;/H1&gt;
+&lt;H2&gt;User Interface Elements&lt;/H2&gt;
+&lt;P&gt;The Intertexti application consists of several user interface elements:&lt;/P&gt;
+&lt;UL&gt;
+&lt;LI&gt;the menu bar&lt;/LI&gt;
+&lt;LI&gt;the notecard info area&lt;/LI&gt;
+&lt;LI&gt;the notecards themselves&lt;/LI&gt;&lt;/UL&gt;
+&lt;H2&gt;Navigation Elements&lt;/H2&gt;
+&lt;P&gt;The navigation elements are:&lt;/P&gt;
+&lt;UL&gt;
+&lt;LI&gt;Table of Contents&lt;/LI&gt;
+&lt;LI&gt;Index&lt;/LI&gt;
+&lt;LI&gt;References&lt;/LI&gt;
+&lt;LI&gt;Referenced By&lt;/LI&gt;&lt;/UL&gt;
+&lt;H1&gt;Start Here&lt;/H1&gt;
+&lt;P&gt;Click on the "+" icon in the table of contents item "Learning Your Way Around" to explore these user interface and navigation elements.&lt;/P&gt;
+&lt;P&gt;After&amp;nbsp;you are familiar with moving around Intertexti and browsing notecards, proceed on to the section "Creating Notecards."&lt;/P&gt;
+&lt;P&gt;As you view each notecard, you might want to check off the notecard so you know what you've read about so far.&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Learning Your Way Around</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:19:53.2189172-04:00</DateCreated>
+    <DateModified>2013-03-10T12:39:01.8456149-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:46:22.1307978-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>2</ID>
+    <TableOfContents>The Menu Bar</TableOfContents>
+    <HTML>&lt;H1&gt;The Menu Bar&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>The Menu Bar</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:23:35.8316499-04:00</DateCreated>
+    <DateModified>2013-03-10T12:25:42.4498921-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:25:27.989065-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>3</ID>
+    <TableOfContents>The Notecard Info Area</TableOfContents>
+    <HTML>&lt;H1&gt;The Notecard Info Area&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>The Notecard Info Area</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:24:12.5217485-04:00</DateCreated>
+    <DateModified>2013-03-10T12:25:58.4728085-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:27:39.7396007-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>4</ID>
+    <TableOfContents>Notecards</TableOfContents>
+    <HTML>&lt;H1&gt;Notecard Documents&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Notecards</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:26:25.4383509-04:00</DateCreated>
+    <DateModified>2013-03-10T12:26:40.0811884-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:27:24.4667271-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>5</ID>
+    <TableOfContents>Navigation Elements</TableOfContents>
+    <HTML>&lt;H1&gt;Navigation Elements&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Navigation Elements</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:26:53.8649768-04:00</DateCreated>
+    <DateModified>2013-03-10T12:27:21.0715329-04:00</DateModified>
+  </Notecards>
+  <Notecards>
+    <ID>6</ID>
+    <TableOfContents>Table of Contents</TableOfContents>
+    <HTML>&lt;H1&gt;Table of Contents&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Table of Contents</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:28:23.6131101-04:00</DateCreated>
+    <DateModified>2013-03-10T12:28:42.7662056-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:37:47.3693551-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>7</ID>
+    <TableOfContents>The Index</TableOfContents>
+    <HTML>&lt;H1&gt;The Index&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>The Index</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:28:54.3588686-04:00</DateCreated>
+    <DateModified>2013-03-10T12:29:13.1929459-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:46:02.343666-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>8</ID>
+    <TableOfContents>References</TableOfContents>
+    <HTML>&lt;H1&gt;References&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>References</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:29:18.3322398-04:00</DateCreated>
+    <DateModified>2013-03-10T12:29:37.6633455-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:37:41.6970307-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>9</ID>
+    <TableOfContents>Referenced By</TableOfContents>
+    <HTML>&lt;H1&gt;Referenced By&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Referenced By</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:29:50.8591003-04:00</DateCreated>
+    <DateModified>2013-03-10T12:30:10.1542039-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:37:44.7642061-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>10</ID>
+    <TableOfContents>Creating Notecards</TableOfContents>
+    <HTML>&lt;H1&gt;Creating Notecards&lt;/H1&gt;
+&lt;P&gt;Create a new notecard by typing Ctrl+N or, from the main menu, selecting "Notecard" then "New".&lt;/P&gt;
+&lt;P&gt;Once a notecard is created, you have two options:&lt;/P&gt;
+&lt;OL&gt;
+&lt;LI&gt;You can associate the notecard with a live web page (aka URL);&lt;/LI&gt;
+&lt;LI&gt;You can create your own content using the notecard's editor.&lt;/LI&gt;&lt;/OL&gt;
+&lt;P&gt;The usefulness of Intertexi resides in:&lt;/P&gt;
+&lt;OL&gt;
+&lt;LI&gt;Creating titles for your notecards&lt;/LI&gt;
+&lt;LI&gt;Creating table of contents entries for your notecards&lt;/LI&gt;
+&lt;LI&gt;Creating tags to build an index&lt;/LI&gt;
+&lt;LI&gt;Associating notecards to create references and table of contents hierarchies&lt;/LI&gt;&lt;/OL&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Creating Notecards</Title>
+    <IsOpen>true</IsOpen>
+    <DateCreated>2013-03-10T12:35:10.6743927-04:00</DateCreated>
+    <DateModified>2013-03-10T12:41:18.5754354-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:50:25.784734-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>11</ID>
+    <TableOfContents>Associate with a Web Page</TableOfContents>
+    <HTML>&lt;H1&gt;Associate with a Web Page&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Associate with a Web Page</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:41:33.7513034-04:00</DateCreated>
+    <DateModified>2013-03-10T12:42:22.3610837-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:46:20.0756802-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>12</ID>
+    <TableOfContents>Add Your Own Content</TableOfContents>
+    <HTML>&lt;H1&gt;Add Your Own Content&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>Add Your Own Content</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:42:29.3194817-04:00</DateCreated>
+    <DateModified>2013-03-10T12:43:07.421661-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:46:03.5897373-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>13</ID>
+    <TableOfContents>The Notecard Title</TableOfContents>
+    <HTML>&lt;H1&gt;The Notecard Title&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>The Notecard Title</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:43:28.5628702-04:00</DateCreated>
+    <DateModified>2013-03-10T12:44:01.5287558-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:46:05.8548668-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>14</ID>
+    <TableOfContents>The Notecard Table of Contents</TableOfContents>
+    <HTML>&lt;H1&gt;The Notecard Table of Contents&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>The Notecard Table of Contents</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:44:16.3516036-04:00</DateCreated>
+    <DateModified>2013-03-10T12:44:38.545873-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:46:04.2547753-04:00</DateLastViewed>
+  </Notecards>
+  <Notecards>
+    <ID>15</ID>
+    <TableOfContents>The Notecard Tags</TableOfContents>
+    <HTML>&lt;H1&gt;The Notecard Tags&lt;/H1&gt;
+&lt;P&gt;&amp;nbsp;&lt;/P&gt;</HTML>
+    <Title>The Notecard Tags</Title>
+    <IsOpen>false</IsOpen>
+    <DateCreated>2013-03-10T12:44:43.7751721-04:00</DateCreated>
+    <DateModified>2013-03-10T12:45:11.3847513-04:00</DateModified>
+    <DateLastViewed>2013-03-10T12:45:45.4336988-04:00</DateLastViewed>
+  </Notecards>
+  <NotecardReferences>
+    <ID>0</ID>
+    <NotecardParentID>1</NotecardParentID>
+    <NotecardChildID>2</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>1</ID>
+    <NotecardParentID>1</NotecardParentID>
+    <NotecardChildID>3</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>2</ID>
+    <NotecardParentID>1</NotecardParentID>
+    <NotecardChildID>4</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>3</ID>
+    <NotecardParentID>1</NotecardParentID>
+    <NotecardChildID>5</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>4</ID>
+    <NotecardParentID>5</NotecardParentID>
+    <NotecardChildID>6</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>5</ID>
+    <NotecardParentID>5</NotecardParentID>
+    <NotecardChildID>7</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>6</ID>
+    <NotecardParentID>5</NotecardParentID>
+    <NotecardChildID>8</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>7</ID>
+    <NotecardParentID>5</NotecardParentID>
+    <NotecardChildID>9</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>8</ID>
+    <NotecardParentID>10</NotecardParentID>
+    <NotecardChildID>11</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>9</ID>
+    <NotecardParentID>10</NotecardParentID>
+    <NotecardChildID>13</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>10</ID>
+    <NotecardParentID>10</NotecardParentID>
+    <NotecardChildID>14</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>11</ID>
+    <NotecardParentID>10</NotecardParentID>
+    <NotecardChildID>15</NotecardChildID>
+  </NotecardReferences>
+  <NotecardReferences>
+    <ID>12</ID>
+    <NotecardParentID>10</NotecardParentID>
+    <NotecardChildID>12</NotecardChildID>
+  </NotecardReferences>
+  <Metadata>
+    <ID>0</ID>
+    <NotecardID>0</NotecardID>
+    <Tag>welcome</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>1</ID>
+    <NotecardID>1</NotecardID>
+    <Tag />
+  </Metadata>
+  <Metadata>
+    <ID>3</ID>
+    <NotecardID>3</NotecardID>
+    <Tag>notecard info</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>4</ID>
+    <NotecardID>2</NotecardID>
+    <Tag>menu bar</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>6</ID>
+    <NotecardID>5</NotecardID>
+    <Tag>navigation</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>8</ID>
+    <NotecardID>4</NotecardID>
+    <Tag>notecards</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>10</ID>
+    <NotecardID>6</NotecardID>
+    <Tag>table of contents</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>12</ID>
+    <NotecardID>7</NotecardID>
+    <Tag>index</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>14</ID>
+    <NotecardID>8</NotecardID>
+    <Tag>references</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>16</ID>
+    <NotecardID>9</NotecardID>
+    <Tag>referenced by</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>18</ID>
+    <NotecardID>10</NotecardID>
+    <Tag>create notecard</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>19</ID>
+    <NotecardID>11</NotecardID>
+    <Tag />
+  </Metadata>
+  <Metadata>
+    <ID>20</ID>
+    <NotecardID>11</NotecardID>
+    <Tag>url</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>21</ID>
+    <NotecardID>11</NotecardID>
+    <Tag>web page</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>23</ID>
+    <NotecardID>12</NotecardID>
+    <Tag>custom content</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>25</ID>
+    <NotecardID>13</NotecardID>
+    <Tag>title</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>26</ID>
+    <NotecardID>13</NotecardID>
+    <Tag>notecard</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>28</ID>
+    <NotecardID>14</NotecardID>
+    <Tag>table of contents</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>29</ID>
+    <NotecardID>14</NotecardID>
+    <Tag>notecard</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>30</ID>
+    <NotecardID>15</NotecardID>
+    <Tag>index</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>31</ID>
+    <NotecardID>15</NotecardID>
+    <Tag>tags</Tag>
+  </Metadata>
+  <Metadata>
+    <ID>32</ID>
+    <NotecardID>15</NotecardID>
+    <Tag>notecard</Tag>
+  </Metadata>
+</NewDataSet>
